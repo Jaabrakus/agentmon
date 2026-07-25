@@ -292,18 +292,6 @@ export function analyzeTraining(sources: TrainingSource[], defaults: SkillKey[])
   return { corpus, scores, learnedSkills, loops: buildLoops(scores), skillPackages: parseSkillPackages(sources) };
 }
 
-function applySignals(traits: Record<TraitKey, number>, scores: Record<SkillKey, number>) {
-  const next = { ...traits };
-  next.reasoning += Math.min(15, scores.reasoning * 2 + scores.planning);
-  next.curiosity += Math.min(15, scores.web * 2 + scores.vision);
-  next.reliability += Math.min(15, scores.critique * 2 + scores.memory);
-  next.initiative += Math.min(15, scores.loops * 2 + scores.delegation);
-  next.empathy += Math.min(12, scores.memory + scores.delegation);
-  next.toolcraft += Math.min(15, scores.tools * 2 + scores.code);
-  (Object.keys(next) as TraitKey[]).forEach((key) => { next[key] = clamp(next[key]); });
-  return next;
-}
-
 export function createAgentInput(role: RoleKey = "builder"): AgentInput {
   return { name: "Nova", provider: "openai", model: "My coding agent", role, mission: "Build, debug, and ship reliable software with connected tools.", skills: [...roleDefaults[role].skills] };
 }
@@ -348,8 +336,9 @@ export function equipSkills(agentmon: Agentmon, skills: SkillKey[]) {
 export function tradeCode(agentmon: Agentmon) { return `${agentmon.id}-${agentmon.dna.slice(1, 3)}`; }
 
 export function createTradePackage(agentmon: Agentmon): TradePackage {
-  const { trainedAt: _trainedAt, ...creature } = agentmon;
-  return { format: "agentmon.trade/v1", exportedAt: new Date().toISOString(), creature, privacy: { rawPromptsIncluded: false, credentialsIncluded: false } };
+  const creature = { ...agentmon } as Partial<Agentmon>;
+  delete creature.trainedAt;
+  return { format: "agentmon.trade/v1", exportedAt: new Date().toISOString(), creature: creature as Omit<Agentmon, "trainedAt">, privacy: { rawPromptsIncluded: false, credentialsIncluded: false } };
 }
 
 export function createSkillsMarkdown(agentmon: Agentmon) {

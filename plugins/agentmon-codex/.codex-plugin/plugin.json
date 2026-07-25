@@ -1,0 +1,24 @@
+{
+  "name": "agentmon-codex",
+  "version": "0.1.0",
+  "description": "Train a local-first Agentmon from approved Codex task prompts.",
+  "author": {
+    "name": "Agentmon Labs"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agentmon Codex",
+    "shortDescription": "Hatch and train from your Codex prompting style.",
+    "longDescription": "Creates a consent-scoped local feed from one Codex task so Agentmon can learn from user prompts without collecting assistant messages, tool output, files, or credentials.",
+    "developerName": "Agentmon Labs",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Local-first", "Promptprint"],
+    "websiteURL": "https://agentmon-lab.tangstacks.chatgpt.site",
+    "brandColor": "#6755F5",
+    "defaultPrompt": [
+      "Hatch my Agentmon from this task.",
+      "Start live Agentmon training.",
+      "Refresh my Agentmon Promptprint."
+    ]
+  }
+}

@@ -10,14 +10,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const imageUrl = `${protocol}://${host}/og-promptprint.png`;
-  const title = "Agentmon — Your Prompting Style, Made Playable";
-  const description = "Turn your unique Promptprint into an original Agentmon, combine real SKILL.md packages into compound moves, discover agent loops, battle, and trade safe portable builds.";
+  const imageUrl = `${protocol}://${host}/og-codex.png`;
+  const title = "Agentmon — Connect Codex. Hatch Your Working Style.";
+  const description = "Connect one approved Codex task, hatch a Promptprint creature, learn skills and loops while you work, then battle and trade safe portable Agentmon builds.";
 
   return {
     title,
     description,
-    openGraph: { title, description, type: "website", images: [{ url: imageUrl, width: 1200, height: 630, alt: "Agentmon LLM hatchery" }] },
+    openGraph: { title, description, type: "website", images: [{ url: imageUrl, width: 1536, height: 1024, alt: "Agentmon Codex-connected hatchery" }] },
     twitter: { card: "summary_large_image", title, description, images: [imageUrl] },
   };
 }
