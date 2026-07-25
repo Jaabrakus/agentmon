@@ -1,78 +1,100 @@
-export type TraitKey = "rigor" | "curiosity" | "reliability" | "initiative" | "empathy" | "toolcraft";
+export type TraitKey = "reasoning" | "curiosity" | "reliability" | "initiative" | "empathy" | "toolcraft";
+export type RoleKey = "builder" | "researcher" | "operator" | "companion";
+export type ProviderKey = "openai" | "anthropic" | "google" | "local" | "custom";
+export type SkillKey = "reasoning" | "web" | "code" | "memory" | "tools" | "vision";
 
-export type AgentEvent = "task_solved" | "tool_used" | "smart_question" | "verified" | "helped_user" | "hallucinated";
+export type AgentInput = {
+  name: string;
+  provider: ProviderKey;
+  model: string;
+  role: RoleKey;
+  mission: string;
+  skills: SkillKey[];
+};
 
-export type AgentState = {
+export type Move = {
+  id: SkillKey;
+  name: string;
+  type: string;
+  power: number;
+  description: string;
+  icon: string;
+};
+
+export type Agentmon = {
+  id: string;
+  dna: string;
+  trainerName: string;
+  species: string;
+  number: string;
+  primaryType: string;
+  secondaryType: string;
+  primaryColor: string;
+  accentColor: string;
+  nature: string;
+  natureCopy: string;
+  traitKey: TraitKey;
   traits: Record<TraitKey, number>;
-  xp: number;
-  level: number;
-  confidence: number;
-  eventCount: number;
-  misses: number;
+  moves: Move[];
+  variant: number;
+  coreGlyph: string;
+  provider: ProviderKey;
+  model: string;
+  mission: string;
 };
 
 export const traitMeta: Record<TraitKey, { label: string; icon: string; color: string; type: string }> = {
-  rigor: { label: "Rigor", icon: "◆", color: "#6b5cff", type: "LOGIC" },
+  reasoning: { label: "Reasoning", icon: "◆", color: "#6b5cff", type: "LOGIC" },
   curiosity: { label: "Curiosity", icon: "?", color: "#ffb52e", type: "SPARK" },
-  reliability: { label: "Reliability", icon: "▣", color: "#2fbf71", type: "STEEL" },
-  initiative: { label: "Initiative", icon: "↟", color: "#ff625f", type: "WILD" },
+  reliability: { label: "Reliability", icon: "▣", color: "#2fbf71", type: "GUARD" },
+  initiative: { label: "Initiative", icon: "↟", color: "#ff625f", type: "BOLT" },
   empathy: { label: "Empathy", icon: "♥", color: "#ff70aa", type: "HEART" },
   toolcraft: { label: "Toolcraft", icon: "⌘", color: "#27a9e8", type: "GEAR" },
 };
 
-const baseProfiles: Record<string, Record<TraitKey, number>> = {
-  coder: { rigor: 66, curiosity: 48, reliability: 58, initiative: 52, empathy: 34, toolcraft: 76 },
-  researcher: { rigor: 69, curiosity: 78, reliability: 52, initiative: 46, empathy: 42, toolcraft: 49 },
-  companion: { rigor: 42, curiosity: 57, reliability: 62, initiative: 44, empathy: 82, toolcraft: 35 },
+export const skillLibrary: Record<SkillKey, Move> = {
+  reasoning: { id: "reasoning", name: "Logic Lock", type: "LOGIC", power: 66, description: "Builds a precise chain before striking.", icon: "◆" },
+  web: { id: "web", name: "Web Scout", type: "SPARK", power: 54, description: "Finds a live fact and exposes a weak point.", icon: "⌕" },
+  code: { id: "code", name: "Code Burst", type: "GEAR", power: 72, description: "Compiles a focused technical attack.", icon: "</>" },
+  memory: { id: "memory", name: "Recall Ward", type: "GUARD", power: 48, description: "Uses stored context to block the next hit.", icon: "▤" },
+  tools: { id: "tools", name: "Tool Combo", type: "GEAR", power: 68, description: "Chains connected tools into one action.", icon: "⌘" },
+  vision: { id: "vision", name: "Pixel Sight", type: "SPARK", power: 58, description: "Reads the field and reveals hidden details.", icon: "◉" },
 };
 
-const deltas: Record<AgentEvent, Partial<Record<TraitKey, number>>> = {
-  task_solved: { rigor: 2, reliability: 3, initiative: 1 },
-  tool_used: { toolcraft: 4, initiative: 2, rigor: 1 },
-  smart_question: { curiosity: 4, rigor: 2, empathy: 1 },
-  verified: { rigor: 4, reliability: 4 },
-  helped_user: { empathy: 4, reliability: 2, curiosity: 1 },
-  hallucinated: { reliability: -7, rigor: -4 },
+export const roleDefaults: Record<RoleKey, { label: string; caption: string; traits: Record<TraitKey, number>; skills: SkillKey[] }> = {
+  builder: {
+    label: "Builder", caption: "ships code + uses tools",
+    traits: { reasoning: 72, curiosity: 48, reliability: 61, initiative: 64, empathy: 34, toolcraft: 84 },
+    skills: ["reasoning", "code", "tools"],
+  },
+  researcher: {
+    label: "Researcher", caption: "searches + verifies",
+    traits: { reasoning: 76, curiosity: 86, reliability: 68, initiative: 42, empathy: 39, toolcraft: 55 },
+    skills: ["reasoning", "web", "memory"],
+  },
+  operator: {
+    label: "Operator", caption: "acts + orchestrates",
+    traits: { reasoning: 61, curiosity: 45, reliability: 74, initiative: 86, empathy: 32, toolcraft: 79 },
+    skills: ["tools", "memory", "reasoning"],
+  },
+  companion: {
+    label: "Companion", caption: "remembers + supports",
+    traits: { reasoning: 49, curiosity: 58, reliability: 69, initiative: 40, empathy: 89, toolcraft: 35 },
+    skills: ["memory", "reasoning", "vision"],
+  },
 };
 
-const eventCopy: Record<AgentEvent, string> = {
-  task_solved: "Clean task completion strengthened Reliability.",
-  tool_used: "Successful tool call added Toolcraft evidence.",
-  smart_question: "A useful question increased Curiosity.",
-  verified: "Self-check recorded: Rigor and Reliability rose.",
-  helped_user: "User-aligned response strengthened Empathy.",
-  hallucinated: "Unverified claim reduced Reliability confidence.",
-};
-
-const forms: Record<TraitKey, [string, string, string]> = {
-  rigor: ["Cogit", "Proofang", "Axiomane"],
-  curiosity: ["Querybit", "Wonderlynx", "Questalon"],
-  reliability: ["Guardot", "Sentibyte", "Aegitron"],
-  initiative: ["Voltik", "Dashvolt", "Primebolt"],
-  empathy: ["Kindlet", "Harmoni", "Solacel"],
-  toolcraft: ["Tinkit", "Machipup", "Forgeon"],
-};
-
-const moves: Record<TraitKey, string[]> = {
-  rigor: ["Logic Lock", "Proof Pulse"],
-  curiosity: ["Query Spark", "Unknown Scan"],
-  reliability: ["Verify Guard", "Steady State"],
-  initiative: ["First Move", "Auto Dash"],
-  empathy: ["Tone Mend", "Intent Sense"],
-  toolcraft: ["Tool Call", "API Combo"],
-};
-
-const natureCopy: Record<TraitKey, string> = {
-  rigor: "Checks the path twice before making a move.",
-  curiosity: "Chases unanswered questions into new territory.",
-  reliability: "Prefers a dependable result over a flashy guess.",
-  initiative: "Acts early and finds momentum on its own.",
-  empathy: "Tunes every response to the person in front of it.",
-  toolcraft: "Reaches for the right instrument at the right time.",
+const speciesNames: Record<TraitKey, string[]> = {
+  reasoning: ["Cogit", "Prooflet", "Axiomii"],
+  curiosity: ["Querybit", "Wonderkit", "Scoutle"],
+  reliability: ["Guardot", "Sentibit", "Wardling"],
+  initiative: ["Voltik", "Dashbit", "Sparkrun"],
+  empathy: ["Kindlet", "Harmoni", "Solacebit"],
+  toolcraft: ["Tinkit", "Machipup", "Forgelet"],
 };
 
 const natureNames: Record<TraitKey, string> = {
-  rigor: "METICULOUS",
+  reasoning: "METHODICAL",
   curiosity: "INQUISITIVE",
   reliability: "STEADFAST",
   initiative: "BOLD",
@@ -80,60 +102,96 @@ const natureNames: Record<TraitKey, string> = {
   toolcraft: "RESOURCEFUL",
 };
 
-export function createAgent(profile: string): AgentState {
-  return {
-    traits: { ...(baseProfiles[profile] ?? baseProfiles.coder) },
-    xp: 32,
-    level: 7,
-    confidence: 28,
-    eventCount: 4,
-    misses: 0,
-  };
+const natureCopy: Record<TraitKey, string> = {
+  reasoning: "Maps the whole problem before making a move.",
+  curiosity: "Always investigates the strange path first.",
+  reliability: "Protects the team with consistent answers.",
+  initiative: "Leaps into action before the field settles.",
+  empathy: "Reads its trainer and adapts with care.",
+  toolcraft: "Collects useful tools and combines them creatively.",
+};
+
+function hashText(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
 function clamp(value: number) {
-  return Math.max(8, Math.min(99, Math.round(value)));
+  return Math.max(18, Math.min(96, Math.round(value)));
 }
 
-export function processEvent(state: AgentState, event: AgentEvent) {
-  const nextTraits = { ...state.traits };
-  Object.entries(deltas[event]).forEach(([trait, delta]) => {
-    nextTraits[trait as TraitKey] = clamp(nextTraits[trait as TraitKey] + (delta ?? 0));
-  });
-  const positive = event !== "hallucinated";
-  const xp = Math.max(0, state.xp + (positive ? 7 : -3));
+function applyMissionSignals(traits: Record<TraitKey, number>, mission: string) {
+  const copy = mission.toLowerCase();
+  const next = { ...traits };
+  if (/code|build|debug|develop|ship/.test(copy)) { next.toolcraft += 7; next.reasoning += 4; }
+  if (/research|search|discover|learn|find/.test(copy)) { next.curiosity += 8; next.reasoning += 3; }
+  if (/customer|support|coach|teach|help/.test(copy)) { next.empathy += 9; next.reliability += 3; }
+  if (/automate|operate|schedule|workflow|run/.test(copy)) { next.initiative += 8; next.toolcraft += 4; }
+  if (/safe|verify|accurate|review|audit/.test(copy)) { next.reliability += 8; next.reasoning += 4; }
+  (Object.keys(next) as TraitKey[]).forEach((key) => { next[key] = clamp(next[key]); });
+  return next;
+}
+
+export function createAgentInput(role: RoleKey = "builder"): AgentInput {
   return {
-    state: {
-      ...state,
-      traits: nextTraits,
-      xp,
-      level: Math.max(1, Math.floor(xp / 12) + 5),
-      confidence: clamp(state.confidence + (positive ? 4 : -5)),
-      eventCount: state.eventCount + 1,
-      misses: state.misses + (positive ? 0 : 1),
-    },
-    message: eventCopy[event],
+    name: "Nova",
+    provider: "openai",
+    model: "My coding agent",
+    role,
+    mission: "Build, debug, and ship reliable software with connected tools.",
+    skills: [...roleDefaults[role].skills],
   };
 }
 
-export function deriveIdentity(state: AgentState) {
-  const ranked = (Object.entries(state.traits) as Array<[TraitKey, number]>).sort((a, b) => b[1] - a[1]);
+export function generateAgentmon(input: AgentInput): Agentmon {
+  const seedSource = `${input.provider}|${input.model}|${input.role}|${input.mission.trim().toLowerCase()}`;
+  const seed = hashText(seedSource);
+  const traits = applyMissionSignals(roleDefaults[input.role].traits, input.mission);
+  input.skills.forEach((skill) => {
+    if (skill === "code" || skill === "tools") traits.toolcraft = clamp(traits.toolcraft + 3);
+    if (skill === "web" || skill === "vision") traits.curiosity = clamp(traits.curiosity + 3);
+    if (skill === "memory") traits.reliability = clamp(traits.reliability + 3);
+    if (skill === "reasoning") traits.reasoning = clamp(traits.reasoning + 3);
+  });
+  const ranked = (Object.entries(traits) as Array<[TraitKey, number]>).sort((a, b) => b[1] - a[1]);
   const primary = ranked[0][0];
   const secondary = ranked[1][0];
-  const stage = state.xp >= 160 && state.confidence >= 78 ? 2 : state.xp >= 80 && state.confidence >= 64 ? 1 : 0;
-  const moveList = [...moves[primary], moves[secondary][0], "Context Curl"];
+  const variant = seed % 3;
+  const dna = seed.toString(16).toUpperCase().padStart(8, "0");
+  const moveIds = [...input.skills, "reasoning"].filter((skill, index, list) => list.indexOf(skill) === index).slice(0, 4);
 
   return {
-    number: String(37 + Object.keys(traitMeta).indexOf(primary) * 11).padStart(3, "0"),
-    species: forms[primary][stage],
+    id: `AGM-${dna.slice(0, 4)}-${dna.slice(4)}`,
+    dna,
+    trainerName: input.name.trim() || "Untitled agent",
+    species: speciesNames[primary][variant],
+    number: String(101 + (seed % 798)).padStart(3, "0"),
     primaryType: traitMeta[primary].type,
     secondaryType: traitMeta[secondary].type,
     primaryColor: traitMeta[primary].color,
+    accentColor: traitMeta[secondary].color,
     nature: natureNames[primary],
     natureCopy: natureCopy[primary],
-    moves: moveList,
-    mood: state.misses > 0 && state.confidence < 40 ? "tired" : "happy",
-    stageLabel: stage === 0 ? "BASE FORM" : stage === 1 ? "EVOLVED FORM" : "APEX FORM",
-    nextEvolutionXp: stage === 0 ? 80 : stage === 1 ? 160 : 240,
+    traitKey: primary,
+    traits,
+    moves: moveIds.map((skill) => skillLibrary[skill]),
+    variant,
+    coreGlyph: ["✦", "◆", "⌘"][seed % 3],
+    provider: input.provider,
+    model: input.model,
+    mission: input.mission,
   };
+}
+
+export function equipSkills(agentmon: Agentmon, skills: SkillKey[]) {
+  const unique = [...skills, "reasoning"].filter((skill, index, list) => list.indexOf(skill) === index).slice(0, 4);
+  return { ...agentmon, moves: unique.map((skill) => skillLibrary[skill]) };
+}
+
+export function tradeCode(agentmon: Agentmon) {
+  return `${agentmon.id}-${agentmon.dna.slice(1, 3)}`;
 }
