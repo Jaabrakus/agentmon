@@ -10,9 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const imageUrl = `${protocol}://${host}/og-hatch.png`;
-  const title = "Agentmon — Plug In an LLM. Hatch Its Alter Ego.";
-  const description = "Connect an AI agent, generate its unique egg, hatch an original Agentmon, equip skills as moves, battle, trade, and embed it anywhere.";
+  const imageUrl = `${protocol}://${host}/og-skill.png`;
+  const title = "Agentmon — Feed an Agent. Hatch Its Portable Skills.";
+  const description = "Feed an LLM prompt history or Agent Skills package, hatch an original Agentmon, discover reusable loops, battle with learned moves, and trade safe SKILL.md manifests.";
 
   return {
     title,
