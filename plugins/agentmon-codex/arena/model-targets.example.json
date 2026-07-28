@@ -1,0 +1,21 @@
+{
+  "format": "agentmon.model-targets/v1",
+  "targets": [
+    {
+      "id": "local-primary",
+      "adapter": "local-openai-compatible",
+      "provider": "local",
+      "model": "replace-with-your-local-model",
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "enabled": false
+    },
+    {
+      "id": "codex-primary",
+      "adapter": "codex-cli",
+      "provider": "openai",
+      "model": "replace-with-your-codex-model",
+      "reasoningEffort": "medium",
+      "enabled": false
+    }
+  ]
+}

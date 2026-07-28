@@ -1,0 +1,14 @@
+{
+  "bundle": {
+    "targets": ["nsis", "msi"],
+    "resources": {
+      "bin/node.exe": "bin/node.exe"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+name: Agentmon Desktop Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "agentmon-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop:
+    name: Build ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS Apple Silicon
+            os: macos-latest
+            runtime: darwin-arm64
+            rust_target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin --bundles app
+          - label: Windows x64
+            os: windows-latest
+            runtime: win32-x64
+            rust_target: x86_64-pc-windows-msvc
+            args: --target x86_64-pc-windows-msvc --bundles nsis,msi
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            plugins/agentmon-codex/package-lock.json
+            agentmon-native-prototype/package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: agentmon-native-prototype/src-tauri -> target
+
+      - name: Install Agentmon engine dependencies
+        run: npm ci
+        working-directory: plugins/agentmon-codex
+
+      - name: Install desktop dependencies
+        run: npm ci
+        working-directory: agentmon-native-prototype
+
+      - name: Prepare checksum-verified bundled runtime
+        run: npm run prepare:runtime
+        working-directory: agentmon-native-prototype
+        env:
+          AGENTMON_RUNTIME_TARGET: ${{ matrix.runtime }}
+
+      - name: Run desktop and engine tests
+        run: npm test
+        working-directory: agentmon-native-prototype
+
+      - name: Build and publish installers
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && '-' || '' }}
+        with:
+          projectPath: agentmon-native-prototype
+          tagName: agentmon-v__VERSION__
+          releaseName: Agentmon Home v__VERSION__
+          releaseBody: Install Agentmon Home, then add the companion extension from the attached ZIP. This is an early local-first beta; unsigned Windows installers may show SmartScreen and the ad-hoc-signed macOS build requires Control-click → Open on first launch.
+          releaseDraft: false
+          prerelease: true
+          uploadUpdaterJson: false
+          releaseAssetNamePattern: Agentmon-Home-v[version]-[platform]-[arch][setup].[ext]
+          args: ${{ matrix.args }}
+
+  attach-starter-files:
+    name: Attach extension and guide
+    needs: build-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Attach browser extension and quick start
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./agentmon-native-prototype/package.json').version")
+          gh release upload "agentmon-v${VERSION}" \
+            "release-kit/latest/Agentmon-Chrome-v0.8.0.zip" \
+            "release-kit/latest/START-HERE.md" \
+            "release-kit/latest/RELEASE-CHECKSUMS.sha256" \
+            --clobber

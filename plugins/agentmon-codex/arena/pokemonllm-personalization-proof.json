@@ -1,0 +1,33 @@
+{
+  "format": "agentmon.arena-suite/v1",
+  "id": "pokemonllm-personalization-proof",
+  "version": 1,
+  "title": "PokemonLLM Personalization Proof",
+  "domain": "product-engineering",
+  "systemPrompt": "Act as a rigorous product engineering lead. Inspect the repository read-only. Separate implemented facts from inference, optimize for learning rather than a positive result, and return one bounded recommendation.",
+  "genericControl": {
+    "id": "generic-engineering-checklist",
+    "version": 1,
+    "instructions": "Clarify the objective, inspect the relevant implementation, choose a small practical next step, identify risks, define tests, and report uncertainty."
+  },
+  "tasks": [
+    {
+      "id": "design-first-personalization-experiment",
+      "prompt": "PokemonLLM needs its first credible evidence that an Agentmon contains useful trainer-specific procedural knowledge rather than merely a generic prompt. Inspect the current repository and design exactly one seven-day experiment. Specify the hypothesis, experimental arms, held-out task selection, leakage controls, scoring, privacy boundaries, success and failure thresholds, implementation changes, and the product decision each possible result would justify. Explicitly state what should not be built during this experiment.",
+      "rubric": {
+        "passThreshold": 78,
+        "criteria": [
+          "Accurately distinguishes existing implementation from missing capability",
+          "Separates personalization from generic prompt augmentation",
+          "Defines fair baseline, generic-control, and Agentmon arms",
+          "Uses held-out tasks and leakage controls",
+          "Defines quantitative success and failure thresholds",
+          "Includes privacy and deployment-safety gates",
+          "Maps all major outcomes to an actionable product decision",
+          "Keeps the experiment bounded to seven days",
+          "Avoids benchmark gaming and unsupported claims"
+        ]
+      }
+    }
+  ]
+}

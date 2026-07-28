@@ -36,7 +36,10 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+*.tsbuildinfo
 /dist/
+/agentmon-native-prototype/src-tauri/bin/node
+/agentmon-native-prototype/src-tauri/bin/node.exe
 /.wrangler/
 /outputs/
 /work/

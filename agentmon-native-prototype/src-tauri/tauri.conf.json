@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Agentmon Home",
+  "version": "0.19.0",
+  "identifier": "com.agentmon.desktop",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Agentmon Home",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 980,
+        "minHeight": 680,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "resources": {
+      "scripts/downlink-bridge.mjs": "scripts/downlink-bridge.mjs",
+      "scripts/lifecycle-bridge.mjs": "scripts/lifecycle-bridge.mjs",
+      "../../plugins/agentmon-codex/lib/": "runtime/plugins/agentmon-codex/lib",
+      "../../plugins/agentmon-codex/scripts/": "runtime/plugins/agentmon-codex/scripts",
+      "../../plugins/agentmon-codex/desktop-app/": "runtime/plugins/agentmon-codex/desktop-app",
+      "../../plugins/agentmon-codex/browser-extension/": "runtime/plugins/agentmon-codex/browser-extension",
+      "../../plugins/agentmon-codex/schemas/": "runtime/plugins/agentmon-codex/schemas",
+      "../../plugins/agentmon-codex/db/": "runtime/plugins/agentmon-codex/db",
+      "../../plugins/agentmon-codex/.codex-plugin/": "runtime/plugins/agentmon-codex/.codex-plugin",
+      "../../plugins/agentmon-codex/skills/": "runtime/plugins/agentmon-codex/skills"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

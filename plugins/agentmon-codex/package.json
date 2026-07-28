@@ -1,0 +1,9 @@
+{
+  "name": "agentmon-engine-runtime",
+  "version": "0.23.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "sharp": "0.34.5"
+  }
+}

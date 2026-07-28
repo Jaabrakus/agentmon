@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agentmon Companion"
+  short_description: "Activate an approved Agentmon in this chat"
+  default_prompt: "Use $agentmon-companion to activate my approved Agentmon for this chat and apply only its proven skills."
+policy:
+  allow_implicit_invocation: true

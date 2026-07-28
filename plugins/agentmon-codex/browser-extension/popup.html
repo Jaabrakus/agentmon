@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentmon Local</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header><span class="signal-mini" aria-hidden="true">✦</span><div><h1>AGENTMON</h1><p>LOCAL COMPANION</p></div></header>
+    <section id="connection" class="connection waiting"><strong>EXTENSION NOT CONNECTED</strong><span>Pair with the local Agentmon app.</span></section>
+    <section id="journey" class="journey"><span id="journey-step">STEP 1 OF 5</span><strong id="journey-title">PAIR AGENTMON</strong><p id="journey-detail">Turn on the desktop companion and enter its one-time code below.</p></section>
+    <section id="incubation" class="incubation signal-stage">
+      <span class="signal-orb" aria-hidden="true"><i></i></span>
+      <span class="incubation-copy"><strong id="agentmon-name">UNBOUND SIGNAL</strong><span id="agentmon-stage">Signal strength · 0%</span><span class="meter"><i id="agentmon-meter"></i></span></span>
+    </section>
+    <section id="paired-details" class="paired-details hidden">
+      <div><span>FORM</span><strong id="agentmon-form">UNBOUND</strong></div>
+      <div><span>SKILLS</span><strong id="agentmon-skills">0</strong></div>
+      <div><span>PROOFS</span><strong id="agentmon-proofs">0</strong></div>
+      <p id="evolution-note">Evolution is managed by permanent lineage events in the Agentmon app.</p>
+      <p class="command-hint"><code>/agentmon auto main</code> route each submitted prompt · <code>/agentmon auto off</code> disable · <code>/agentmon helped</code> win · <code>/agentmon missed</code> miss</p>
+    </section>
+    <section id="marketplace-panel" class="marketplace-panel hidden">
+      <div class="mode-heading"><span>MARKETPLACE · AGENTMON HOME</span><strong id="marketplace-state">NOT PAIRED</strong></div>
+      <p id="marketplace-detail">Trading and registry credentials stay in the desktop app.</p>
+      <button id="open-home">Open Agentmon Home Marketplace</button>
+    </section>
+    <section id="mode-panel" class="mode-panel hidden">
+      <div class="mode-heading"><span>AGENTMON MODE · THIS TAB</span><strong id="mode-state">OFF</strong></div>
+      <button id="mode-toggle" disabled>Turn Agentmon Mode On</button>
+      <p id="mode-detail">Enable this LLM website first.</p>
+      <p id="mode-skill">Only proven, non-regressed skills can run.</p>
+    </section>
+    <section id="action-panel" class="action-panel hidden">
+      <div class="mode-heading"><span>ACTION LEARNING · THIS SITE</span><strong id="action-state">OFF</strong></div>
+      <button id="action-toggle" disabled>Turn Action Learning On</button>
+      <p id="action-detail">Semantic actions only. No text, field values, screenshots, or keystrokes.</p>
+      <div class="battle-state">
+        <label for="emotion-state">TEMPORARY BATTLE STATE</label>
+        <div class="row">
+          <select id="emotion-state" aria-label="Trainer-declared emotion">
+            <option value="neutral">Neutral</option><option value="calm">Calm</option><option value="curious">Curious</option>
+            <option value="uncertain">Uncertain</option><option value="anxious">Anxious</option><option value="frustrated">Frustrated</option>
+            <option value="confident">Confident</option><option value="energized">Energized</option><option value="overwhelmed">Overwhelmed</option>
+            <option value="guarded">Guarded</option><option value="connected">Connected</option>
+          </select>
+          <select id="emotion-intensity" aria-label="Emotion intensity">
+            <option value="1">1/5</option><option value="2">2/5</option><option value="3">3/5</option><option value="4">4/5</option><option value="5">5/5</option>
+          </select>
+          <button id="emotion-set">Set</button>
+        </div>
+        <p id="emotion-policy">You declare it. Agentmon never guesses your feelings.</p>
+      </div>
+      <div class="action-metrics"><span>RESONANCE <strong id="action-resonance">—</strong></span><span>EVENTS <strong id="action-events">0</strong></span><span>PROPOSALS <strong id="action-proposals">0</strong></span></div>
+      <div id="action-proposal" class="action-proposal hidden">
+        <strong id="action-proposal-name">PROPOSED WORKFLOW</strong>
+        <span id="action-proposal-forecast">Waiting for repeated evidence.</span>
+        <div class="row"><button id="action-simulate">Simulate · No Clicks</button><button id="action-approve">Approve</button></div>
+      </div>
+    </section>
+    <section class="privacy"><strong>DERIVED-ONLY</strong><span>Submitted prompts are processed in memory, then discarded.</span></section>
+    <section id="pairing-panel">
+      <label for="pair-code">One-time pairing code</label>
+      <div class="row"><input id="pair-code" autocomplete="off" spellcheck="false" placeholder="From the companion CLI"><button id="pair">Pair</button></div>
+    </section>
+    <section><p id="site">Checking this tab…</p><button id="toggle" disabled>Enable this site</button></section>
+    <p id="status" role="status">Start the local companion, then pair.</p>
+    <footer>No drafts · No responses · No cloud prompt storage</footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
