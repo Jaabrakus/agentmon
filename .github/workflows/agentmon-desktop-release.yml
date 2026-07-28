@@ -35,7 +35,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: agentmon-native-prototype/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            agentmon-native-prototype/package-lock.json
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -46,6 +48,9 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: agentmon-native-prototype/src-tauri -> target
+
+      - name: Install Agentmon engine dependencies
+        run: npm ci
 
       - name: Install desktop dependencies
         run: npm ci
