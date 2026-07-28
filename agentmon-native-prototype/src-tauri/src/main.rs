@@ -399,6 +399,15 @@ fn run_engine(command: &str, prompt: Option<&str>) -> Result<Value, String> {
     }
     let root = find_project_root()?;
     let engine_root = find_engine_root(&root)?;
+    run_engine_with_roots(command, prompt, &root, &engine_root)
+}
+
+fn run_engine_with_roots(
+    command: &str,
+    prompt: Option<&str>,
+    root: &Path,
+    engine_root: &Path,
+) -> Result<Value, String> {
     let bundled_bridge =
         bundled_resource_root().map(|resources| resources.join("scripts/downlink-bridge.mjs"));
     let bridge = bundled_bridge
@@ -499,6 +508,10 @@ fn run_lifecycle(command: &str, input: Option<&Value>) -> Result<Value, String> 
 
 fn load_local_source(source: &str) -> Result<Value, String> {
     let root = find_project_root()?;
+    load_local_source_from(&root, source)
+}
+
+fn load_local_source_from(root: &Path, source: &str) -> Result<Value, String> {
     let (name, relative, kind) = match source {
         "skill" => ("SKILL.md", ".agentmon/roster/main/SKILL.md", "text"),
         "state" => (
@@ -1324,23 +1337,116 @@ async fn copy_pairing_code(state: State<'_, Arc<Mutex<CompanionManager>>>) -> Re
 
 #[cfg(test)]
 mod tests {
-    use super::{load_local_source, plugin_status_from_list, run_engine};
+    use super::{load_local_source_from, plugin_status_from_list, run_engine_with_roots};
     use serde_json::json;
-    use std::time::{Duration, Instant};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+        sync::atomic::{AtomicU64, Ordering},
+        time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    };
+
+    static FIXTURE_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    struct FixtureHabitat(PathBuf);
+
+    impl FixtureHabitat {
+        fn create() -> Self {
+            let nonce = FIXTURE_COUNTER.fetch_add(1, Ordering::Relaxed);
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("system time should be after the epoch")
+                .as_nanos();
+            let root = std::env::temp_dir().join(format!(
+                "agentmon-desktop-test-{}-{timestamp}-{nonce}",
+                std::process::id()
+            ));
+            let roster = root.join(".agentmon/roster/main");
+            fs::create_dir_all(roster.join("visual")).expect("fixture roster should be created");
+            fs::write(
+                roster.join("SKILL.md"),
+                "# Guardot Agentmon\n\nSynthetic CI fixture.\n",
+            )
+            .expect("fixture skill should be written");
+            fs::write(
+                roster.join("agentmon.json"),
+                serde_json::to_vec_pretty(&json!({
+                    "creationVersion": "test-fixture/v1",
+                    "id": "AGM-TEST-FIXTURE",
+                    "species": "Guardot",
+                    "form": "Guardot",
+                    "nature": "Steady",
+                    "dna": "synthetic-test-dna",
+                    "hatchReadiness": { "score": 100 },
+                    "promptprint": {
+                        "archetype": "guardian",
+                        "confidence": 80,
+                        "sampleCount": 5,
+                        "dimensions": {}
+                    },
+                    "growthPromptprint": {
+                        "archetype": "guardian",
+                        "confidence": 80,
+                        "sampleCount": 5,
+                        "dimensions": {}
+                    },
+                    "lineage": {
+                        "generation": 1,
+                        "genesisDNA": "synthetic-test-dna",
+                        "currentDNA": "synthetic-test-dna"
+                    },
+                    "learnedSkills": [],
+                    "skillCandidates": [],
+                    "proceduralSkills": [],
+                    "procedureTrials": [],
+                    "arenaReport": { "results": [] }
+                }))
+                .expect("fixture state should serialize"),
+            )
+            .expect("fixture state should be written");
+            fs::write(roster.join("visual/agentmon.png"), b"\x89PNG\r\n\x1a\n")
+                .expect("fixture visual should be written");
+            Self(root)
+        }
+
+        fn root(&self) -> &Path {
+            &self.0
+        }
+    }
+
+    impl Drop for FixtureHabitat {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn engine_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("the desktop crate should be inside the Agentmon repository")
+            .to_path_buf()
+    }
 
     #[test]
     fn identity_bridge_closes_stdin_and_finishes_quickly() {
+        let habitat = FixtureHabitat::create();
         let started = Instant::now();
-        let identity = run_engine("identity", None).expect("identity bridge should finish");
+        let identity = run_engine_with_roots("identity", None, habitat.root(), &engine_root())
+            .expect("identity bridge should finish");
         assert_eq!(identity["identity"]["name"], "Guardot");
         assert!(started.elapsed() < Duration::from_secs(5));
     }
 
     #[test]
     fn reads_only_allowlisted_agentmon_sources() {
-        let skill = load_local_source("skill").expect("SKILL.md should be readable");
-        let state = load_local_source("state").expect("agentmon.json should be readable");
-        let visual = load_local_source("visual").expect("agentmon.png should be readable");
+        let habitat = FixtureHabitat::create();
+        let skill =
+            load_local_source_from(habitat.root(), "skill").expect("SKILL.md should be readable");
+        let state = load_local_source_from(habitat.root(), "state")
+            .expect("agentmon.json should be readable");
+        let visual = load_local_source_from(habitat.root(), "visual")
+            .expect("agentmon.png should be readable");
         assert_eq!(skill["kind"], "text");
         assert_eq!(state["kind"], "json");
         assert_eq!(visual["kind"], "image");
@@ -1356,7 +1462,7 @@ mod tests {
                 .unwrap()
                 .starts_with("data:image/png;base64,")
         );
-        assert!(load_local_source("../../private").is_err());
+        assert!(load_local_source_from(habitat.root(), "../../private").is_err());
     }
 
     #[test]
