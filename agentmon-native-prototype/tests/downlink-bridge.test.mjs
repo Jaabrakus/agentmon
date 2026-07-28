@@ -1,40 +1,125 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import test from "node:test";
+import test, { after, before } from "node:test";
 
 const prototypeRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectRoot = resolve(prototypeRoot, "..");
 const bridge = resolve(prototypeRoot, "src-tauri/scripts/downlink-bridge.mjs");
+let habitatRoot;
+
+before(async () => {
+  habitatRoot = await mkdtemp(join(tmpdir(), "agentmon-downlink-test-"));
+  const roster = resolve(habitatRoot, ".agentmon/roster/main");
+  await mkdir(resolve(roster, "visual"), { recursive: true });
+  await writeFile(resolve(roster, "SKILL.md"), [
+    "# Fixture Agentmon",
+    "",
+    "Synthetic derived identity used only by the clean-runner test suite.",
+    "",
+    "# Complete Identity Contract",
+  ].join("\n"));
+  await writeFile(resolve(roster, "agentmon.json"), `${JSON.stringify({
+    creationVersion: "test-fixture/v1",
+    id: "AGM-CI-FIXTURE",
+    species: "Fixture Tortoise",
+    form: "Fixture Guardot",
+    nature: "Steady",
+    dna: "fixture-dna",
+    hatchReadiness: { score: 100 },
+    promptprint: {
+      archetype: "GUARDIAN FIXTURE",
+      confidence: 88,
+      sampleCount: 8,
+      dimensions: { structure: 80, precision: 72, verification: 84 },
+    },
+    growthPromptprint: {
+      archetype: "GUARDIAN FIXTURE",
+      confidence: 90,
+      sampleCount: 12,
+      dimensions: { structure: 82, precision: 76, verification: 88 },
+    },
+    lineage: {
+      generation: 1,
+      genesisDNA: "fixture-dna",
+      currentDNA: "fixture-dna",
+    },
+    learnedSkills: [{
+      id: "fixture-code",
+      name: "Fixture Code Burst",
+      type: "craft",
+      power: 72,
+      description: "A synthetic evidence-backed coding tendency.",
+      evidence: 4,
+      source: "synthetic-test-evidence",
+    }],
+    skillCandidates: [{
+      id: "fixture-code",
+      name: "Fixture Code Burst",
+      stage: "validated",
+      confidence: 91,
+      behavioralEvidenceCount: 4,
+      reason: "Synthetic evidence for deterministic identity compilation.",
+    }],
+    proceduralSkills: [{
+      id: "fixture-untrusted-procedure",
+      name: "Untrusted Fixture Loop",
+      stage: "validated",
+      confidence: 99,
+      trainerConfirmed: true,
+      trainerReview: "confirmed",
+      provenance: { kind: "trainer-authored" },
+      trigger: "Any task",
+      steps: ["Do not execute this noncanonical fixture."],
+      completionCriteria: ["Never selected"],
+      failureRules: [],
+      permissions: [],
+    }],
+    procedureTrials: [],
+    arenaReport: {
+      testedProcedures: 1,
+      provenProcedures: 1,
+      results: [{
+        procedureId: "fixture-untrusted-procedure",
+        status: "proven",
+        lift: 20,
+      }],
+    },
+  }, null, 2)}\n`);
+});
+
+after(async () => {
+  if (habitatRoot) await rm(habitatRoot, { recursive: true, force: true });
+});
 
 function runBridge(command, input = "") {
-  return JSON.parse(execFileSync("node", [bridge, command, projectRoot], {
+  return JSON.parse(execFileSync("node", [bridge, command, habitatRoot, projectRoot], {
     input,
     encoding: "utf8",
     stdio: ["pipe", "pipe", "pipe"],
   }));
 }
 
-test("loads the real complete Guardot identity without sending data", () => {
+test("loads a complete derived identity without sending data", () => {
   const startedAt = Date.now();
   const result = runBridge("identity");
   assert.ok(Date.now() - startedAt < 5000, "identity loading must not initialize the heavy SQLite/arena runtime");
-  assert.equal(result.agentmon.id, "AGM-70EC-9099");
-  assert.equal(result.identity.permanentArchetype, "EXACT GEARSMITH");
-  assert.equal(result.identity.resonance.mode, "mentor");
+  assert.equal(result.agentmon.id, "AGM-CI-FIXTURE");
+  assert.equal(result.identity.permanentArchetype, "GUARDIAN FIXTURE");
+  assert.equal(result.identity.resonance.mode, "guardian");
   assert.ok(result.identity.workingProfile.patterns.length > 0);
-  assert.ok(result.identity.capabilities.some((item) => item.name === "Code Burst"));
-  assert.equal(result.summary.identity.species, "Vault Tortoise");
+  assert.ok(result.identity.capabilities.some((item) => item.name === "Fixture Code Burst"));
+  assert.equal(result.summary.identity.species, "Fixture Tortoise");
   assert.equal(result.summary.hatch.score, 100);
-  assert.equal(result.summary.lineage.currentDNA, "70EC9099");
-  assert.ok(result.summary.capabilities.some((item) => item.name === "Pixel Sight"));
-  assert.ok(result.summary.procedures.some((item) => item.name === "Core Proof Loop" && item.arenaStatus === "proven"));
+  assert.equal(result.summary.lineage.currentDNA, "fixture-dna");
+  assert.ok(result.summary.capabilities.some((item) => item.name === "Fixture Code Burst"));
+  assert.ok(result.summary.procedures.some((item) => item.name === "Untrusted Fixture Loop" && item.arenaStatus === "proven"));
   assert.equal(result.summary.arena.results[0].lift, 20);
   assert.equal(result.privacy.sentToActiveModelProvider, false);
-  assert.match(result.skillMarkdown, /# Guardot Agentmon/);
-  assert.match(result.skillMarkdown, /Hatch-locked resonance \(individual\): MENTOR/);
-  assert.match(result.skillMarkdown, /Resonance posture: suggest-only; adds a checkpoint/);
+  assert.match(result.skillMarkdown, /# Fixture Agentmon/);
   assert.match(result.skillMarkdown, /# Complete Identity Contract/);
 });
 
@@ -48,7 +133,7 @@ test("refuses a noncanonical procedure even when legacy arena evidence says prov
   assert.equal(JSON.stringify(result).includes("Decide the next product milestone"), false);
 });
 
-test("does not force an unrelated task through Core Proof Loop", () => {
+test("does not force an unrelated task through an untrusted procedure", () => {
   const result = runBridge("compile", "Write a birthday poem.");
   assert.deepEqual(result.procedures, []);
   assert.equal(result.routing.decision, "identity-only");
