@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentmon.dev/schemas/phenotype-v2.json",
+  "title": "Agentmon Phenotype V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "agentmonId", "species", "form", "genome", "identity", "palette", "mutation", "equipment", "rendering", "privacy", "digest"],
+  "properties": {
+    "format": { "const": "agentmon.phenotype/v2" },
+    "agentmonId": { "type": "string", "minLength": 1 },
+    "species": { "type": "string", "minLength": 1 },
+    "form": { "type": "string", "minLength": 1 },
+    "genome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["genesisDNA", "currentDNA", "generation"],
+      "properties": {
+        "genesisDNA": { "type": "string", "minLength": 1 },
+        "currentDNA": { "type": "string", "minLength": 1 },
+        "generation": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "eyes", "ears", "tail", "marking", "coreGlyph", "limbs", "stance", "handedness"],
+      "properties": {
+        "body": { "enum": ["round", "square", "diamond", "bean", "shield", "moth", "orb", "totem", "hopper", "drake"] },
+        "eyes": { "enum": ["dot", "visor", "bright", "sleepy", "split", "cyclops", "star", "ring", "mask", "prism"] },
+        "ears": { "enum": ["none", "round", "point", "antenna", "fin", "horn", "leaf", "radar", "wing", "crystal"] },
+        "tail": { "enum": ["none", "spark", "cable", "leaf", "blade", "comet", "orb", "fan", "spring", "rune"] },
+        "marking": { "enum": ["none", "chevron", "freckles", "circuit", "stripe", "constellation", "split", "mask", "spiral", "patch"] },
+        "coreGlyph": { "enum": ["spark", "diamond", "loop", "cross", "eye", "gate", "moon", "bolt", "seed", "crown"] },
+        "limbs": { "enum": ["boots", "paws", "spikes", "fins", "hover", "claws"] },
+        "stance": { "enum": ["compact", "tall", "wide"] },
+        "handedness": { "enum": ["left", "right"] }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "id", "mood", "harmony", "ink", "paper", "primary", "accent", "signal"],
+      "properties": {
+        "format": { "const": "agentmon.palette/v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "mood": { "type": "string", "minLength": 1 },
+        "harmony": { "enum": ["heritage", "inverse", "signal-shift", "moonlit"] },
+        "ink": { "$ref": "#/$defs/color" },
+        "paper": { "$ref": "#/$defs/color" },
+        "primary": { "$ref": "#/$defs/color" },
+        "accent": { "$ref": "#/$defs/color" },
+        "signal": { "$ref": "#/$defs/color" }
+      }
+    },
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generation", "aura", "crestSize", "mutationMark"],
+      "properties": {
+        "generation": { "type": "integer", "minimum": 1 },
+        "aura": { "enum": ["none", "pixels", "orbit", "flare"] },
+        "crestSize": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "mutationMark": { "type": "string" }
+      }
+    },
+    "equipment": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slot", "procedureId", "proofBound"],
+        "properties": {
+          "slot": { "type": "string" },
+          "procedureId": { "type": "string" },
+          "proofBound": { "const": true }
+        }
+      }
+    },
+    "rendering": { "type": "object" },
+    "privacy": {
+      "type": "object",
+      "required": ["rawPromptsIncluded", "hiddenReasoningIncluded"],
+      "properties": {
+        "rawPromptsIncluded": { "const": false },
+        "hiddenReasoningIncluded": { "const": false }
+      }
+    },
+    "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  },
+  "$defs": { "color": { "type": "string", "pattern": "^#[0-9A-F]{6}$" } }
+}

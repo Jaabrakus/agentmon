@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Agentmon Home</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./catalog.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="titlebar" data-tauri-drag-region>
+        <div class="traffic-lights" aria-hidden="true"></div>
+        <button class="brand" data-view="work" aria-label="Open Agentmon Work view">
+          <span class="brand-mark">A</span><span>AGENTMON</span>
+        </button>
+        <div class="project-switcher" aria-label="Active project">
+          <span class="project-dot"></span>
+          <span><small>HABITAT</small><b id="project-name">Local Habitat</b></span>
+        </div>
+        <nav class="view-switcher" aria-label="Workspace views">
+          <button class="view-button active" data-view="work">Work</button>
+          <button class="view-button" data-view="home">Home</button>
+          <button class="view-button" data-view="guide">Guide</button>
+        </nav>
+        <button class="runtime-pill" id="connection-toggle" aria-label="Open Agentmon connection status"><span id="connection-dot"></span><b id="connection-label">COMPANION STARTING</b></button>
+      </header>
+
+      <section class="workspace view active" id="work-view">
+        <aside class="file-rail">
+          <div class="rail-heading"><span>REAL LOCAL SOURCES</span></div>
+          <label class="file-search"><span>⌕</span><input id="file-search" aria-label="Search project files" placeholder="Search files" /></label>
+          <div class="file-tree">
+            <button class="tree-row folder" id="folder-toggle" aria-expanded="true"><span id="folder-chevron">⌄</span><b>.agentmon/roster/main</b></button>
+            <div id="file-list">
+              <button class="tree-row file active" data-source="skill"><span>⌁</span>SKILL.md</button>
+              <button class="tree-row file" data-source="state"><span>◫</span>agentmon.json</button>
+              <button class="tree-row file" data-source="visual"><span>◇</span>visual/agentmon.png</button>
+            </div>
+          </div>
+          <div class="local-boundary"><span>⌾</span><div><b>DEVICE ONLY</b><small>Project data stays local</small></div></div>
+        </aside>
+
+        <section class="main-stage">
+          <div class="stage-bar">
+            <div class="surface-tabs" role="tablist">
+              <button class="surface-tab active" data-surface="chat">Chat</button>
+              <button class="surface-tab" data-surface="code">Code</button>
+            </div>
+            <div class="stage-context"><span class="agent-spark"></span><b>Guardot</b><span>Complete identity active</span></div>
+          </div>
+
+          <div class="surface active" id="chat-surface">
+            <section class="local-gateway" aria-label="Agentmon model provider gateway">
+              <div class="gateway-heading">
+                <span class="gateway-dot" id="gateway-dot"></span>
+                <div><b id="gateway-title">MODEL PROVIDER NOT CONNECTED</b><small id="gateway-detail">Choose local, OpenAI, Gemini, or Venice. Cloud providers remain off until you add a key.</small></div>
+              </div>
+              <label class="agentmon-mode"><input id="agentmon-mode" type="checkbox" checked /><span><b id="agentmon-mode-title">AGENTMON MODE · ON</b><small>Identity + relevant proven skills applied automatically</small></span></label>
+              <div class="gateway-controls">
+                <select id="model-provider" aria-label="Model provider"><option value="local">LOCAL · DEVICE ONLY</option><option value="venice">VENICE · CLOUD</option><option value="openai">OPENAI · CLOUD</option><option value="gemini">GEMINI · CLOUD</option></select>
+                <select id="local-runtime" aria-label="Detected local runtime"><option value="custom">CUSTOM / MANUAL</option></select>
+                <input id="local-endpoint" aria-label="Local model endpoint" value="http://127.0.0.1:11434/v1" spellcheck="false" />
+                <input id="provider-key" type="password" aria-label="Provider API key" placeholder="API KEY · SAVED TO SYSTEM VAULT" autocomplete="off" hidden />
+                <input id="local-model" list="local-model-list" aria-label="Local model" placeholder="CHOOSE OR TYPE MODEL" spellcheck="false" />
+                <datalist id="local-model-list"></datalist>
+                <button id="local-scan" type="button">SCAN THIS DEVICE</button>
+                <button class="gateway-connect" id="local-connect" type="button">CONNECT</button>
+              </div>
+            </section>
+            <div class="conversation" id="conversation">
+              <div class="conversation-intro">
+                <span class="eyebrow">AGENTMON GATEWAY · MODEL AGGREGATOR</span>
+                <h1>Build with your Agentmon.</h1>
+              <p id="work-intro">Choose any connected model brain. Your Agentmon’s identity and relevant proven skills are applied automatically, while feedback trains the Agentmon—not the provider.</p>
+              </div>
+              <article class="message agent-message">
+                <div class="agent-avatar"><img src="./assets/guardot.png" alt="Guardot" /></div>
+                <div class="message-column">
+                  <div class="message-label"><b id="agent-name">LOADING</b><span id="agent-resonance">READING LOCAL VAULT</span></div>
+                  <div class="message-body">
+                    <p id="engine-status">Connecting to the project’s local Agentmon roster…</p>
+                  </div>
+                  <button class="skill-receipt" id="skill-receipt">
+                    <span class="receipt-check">✓</span>
+                    <span><b id="procedure-name">LOCAL ENGINE</b><small id="procedure-status">Verifying source files</small></span>
+                    <span>Inspect ›</span>
+                  </button>
+                </div>
+              </article>
+            </div>
+            <form class="composer" id="composer">
+              <div class="composer-field">
+                <textarea id="prompt" rows="1" aria-label="Chat through Guardot" placeholder="Connect a model provider above to begin…" disabled></textarea>
+                <div class="composer-meta"><span id="composer-agentmon-state">Guardot automatic</span><i></i><span id="composer-model-state">Model disconnected</span><i></i><span>Conversation memory only</span></div>
+              </div>
+              <button class="send-button" aria-label="Send through Agentmon" disabled>↳</button>
+            </form>
+          </div>
+
+          <div class="surface" id="code-surface">
+            <div class="code-layout" id="text-source-viewer">
+              <div class="code-gutter" id="code-gutter">1</div>
+              <pre id="skill-source"><span class="code-muted">Loading the real .agentmon/roster/main/SKILL.md…</span></pre>
+            </div>
+            <div class="image-source-viewer" id="image-source-viewer" hidden>
+              <img id="source-image" alt="Current Agentmon roster visual" />
+              <p>Actual local roster asset · no generated preview</p>
+            </div>
+            <div class="code-status"><span id="source-name">SKILL.md</span><span>READ ONLY</span><span id="source-path">Local roster</span></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="home-view view" id="home-view">
+        <div class="home-toolbar">
+          <div><span class="eyebrow">GUARDOT’S HOME</span><h2>Mosslight Workshop</h2></div>
+          <div class="home-actions"><span class="dashboard-live">● LIVE AGENTMON DASHBOARD</span><button id="light-toggle">☼ Evening light</button></div>
+        </div>
+        <div class="home-dashboard">
+          <div class="home-scene" id="home-scene">
+            <div class="sky-glow"></div>
+            <div class="window-frame"><div class="window-sky"><i></i><i></i><i></i></div></div>
+            <div class="beam beam-one"></div><div class="beam beam-two"></div>
+            <div class="shelf"><span class="book b1"></span><span class="book b2"></span><span class="book b3"></span><span class="orb"></span></div>
+            <div class="plant"><i></i><i></i><i></i><b></b></div>
+            <div class="workbench"><div class="monitor"><span>CORE<br>PROOF</span></div><div class="desk-lamp"></div><div class="bench-top"></div><div class="bench-leg left"></div><div class="bench-leg right"></div></div>
+            <div class="rug"></div>
+            <div class="home-agent"><div class="agent-shadow"></div><img src="./assets/guardot.png" alt="Guardot in its home" /><span id="home-agent-status">Companion starting…</span></div>
+            <div class="home-stats"><span><b id="proven-count">—</b> proven procedures</span><span><b id="sample-count">—</b> derived samples</span><span><b>LOCAL</b> habitat</span></div>
+          </div>
+
+          <aside class="details-drawer" id="details-drawer">
+          <div class="details-header">
+            <div class="details-creature"><img src="./assets/guardot.png" alt="Guardot" /></div>
+            <div><span>ACTIVE AGENTMON</span><h3 id="detail-name">Guardot</h3><p id="detail-species">Loading species…</p></div>
+          </div>
+
+          <div class="detail-section home-setup">
+            <div class="detail-section-heading"><span class="detail-label">QUICK SETUP</span><b id="home-connection-state">STARTING</b></div>
+            <button class="setup-power" id="home-companion-power">TURN AGENTMON ON</button>
+            <div class="home-pairing" id="home-pairing-row">
+              <div><span>CHROME PAIRING CODE</span><code id="home-pairing-code">Starting…</code></div>
+              <button id="home-copy-pairing">COPY</button>
+            </div>
+            <div class="setup-actions">
+              <button id="home-open-chrome">OPEN CHROME</button>
+              <button class="setup-primary" id="home-get-extension">GET EXTENSION</button>
+            </div>
+            <p id="home-extension-note">Copies the verified local extension, opens Chrome Extensions, and reveals the folder for Load unpacked.</p>
+            <div class="home-codex-setup">
+              <div><span>CODEX PLUGIN</span><b id="home-codex-state">Not checked</b><p id="home-codex-message">Optional · runs only when you press Install.</p></div>
+              <button id="home-codex-install">INSTALL</button>
+            </div>
+          </div>
+
+          <div class="detail-section lifecycle-lab" id="lifecycle-lab">
+            <div class="detail-section-heading"><span class="detail-label">GENESIS FORGE</span><b id="lifecycle-stage">SCANNING</b></div>
+            <div class="lifecycle-core" id="lifecycle-core" data-stage="signal">
+              <div class="dna-orbit"><i></i><i></i><i></i><span id="lifecycle-level">L0</span></div>
+              <div><strong id="lifecycle-name">Unbound signal</strong><small id="lifecycle-subtitle">Waiting for behavioral evidence</small></div>
+            </div>
+            <div class="lifecycle-meter"><i id="lifecycle-level-progress"></i></div>
+            <div class="lifecycle-metrics">
+              <span><b id="lifecycle-readiness">0%</b> hatch</span>
+              <span><b id="lifecycle-skills">0</b> skills</span>
+              <span><b id="lifecycle-loops">0</b> loops</span>
+              <span><b id="lifecycle-generation">—</b> gen</span>
+            </div>
+            <div class="foundation-loop" aria-label="Agentmon foundation loop">
+              <span class="active">01 OBSERVE</span><i></i><span>02 DERIVE</span><i></i><span>03 PROVE</span><i></i><span>04 ROUTE</span><i></i><span>05 MEASURE</span><i></i><span>06 EVOLVE</span>
+            </div>
+            <label class="forge-field"><span>TRAINER</span><input id="lifecycle-trainer" maxlength="80" value="Local Trainer" /></label>
+            <label class="forge-field"><span>RESONANCE ROLE</span><select id="lifecycle-role"><option value="companion">COMPANION</option><option value="builder">BUILDER</option><option value="researcher">RESEARCHER</option><option value="planner">PLANNER</option><option value="designer">DESIGNER</option></select></label>
+            <label class="forge-field forge-prompts"><span>REAL EXAMPLES · ONE PER LINE</span><textarea id="lifecycle-prompts" rows="5" maxlength="16000" placeholder="Build the smallest working version, then test it.&#10;Challenge weak assumptions with evidence before committing.&#10;Keep the user’s goal visible while using tools to ship."></textarea></label>
+            <div class="forge-actions">
+              <button class="forge-primary" id="lifecycle-train">INCUBATE SIGNAL</button>
+              <button id="lifecycle-evolve" disabled>EVOLUTION LOCKED</button>
+            </div>
+            <p class="forge-status" id="lifecycle-message">Prompts are processed transiently. Only derived evidence and digests enter the local vault.</p>
+            <div class="integrity-seal"><span>◆</span><b>DNA SEALED</b><small>Training grows evidence and skills. Only an engine-verified evolution event can mutate DNA.</small></div>
+          </div>
+
+          <div class="detail-section">
+            <span class="detail-label">PERMANENT IDENTITY</span>
+            <div class="detail-grid detail-grid-three">
+              <div><span>ARCHETYPE</span><b id="detail-archetype">—</b></div>
+              <div><span>NATURE</span><b id="detail-nature">—</b></div>
+              <div><span>RESONANCE</span><b id="detail-resonance">—</b></div>
+              <div><span>DNA</span><b id="detail-dna">—</b></div>
+              <div><span>GENERATION</span><b id="detail-generation">—</b></div>
+              <div><span>ENGINE</span><b id="detail-engine">—</b></div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-heading"><span class="detail-label">TRAINING</span><b id="detail-hatch-score">—</b></div>
+            <div class="detail-progress"><i id="detail-hatch-progress"></i></div>
+            <p id="detail-evidence">Loading evidence…</p>
+            <div class="pattern-list" id="detail-patterns"></div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-heading"><span class="detail-label">CAPABILITIES</span><b id="detail-capability-count">—</b></div>
+            <div class="capability-list" id="detail-capabilities"></div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-heading"><span class="detail-label">PROCEDURES</span><b id="detail-procedure-count">—</b></div>
+            <div class="procedure-list" id="detail-procedures"></div>
+          </div>
+
+          <div class="detail-section">
+            <span class="detail-label">PROOF & USEFULNESS</span>
+            <div class="detail-grid">
+              <div><span>ARENA TESTED</span><b id="detail-arena-tested">—</b></div>
+              <div><span>ARENA PROVEN</span><b id="detail-arena-proven">—</b></div>
+              <div><span>OUTCOMES</span><b id="detail-outcomes">—</b></div>
+              <div><span>USEFULNESS</span><b id="detail-effectiveness">—</b></div>
+            </div>
+            <p id="detail-proof-note">No proof result loaded.</p>
+          </div>
+
+          <div class="detail-section">
+            <span class="detail-label">LIVE CONNECTION</span>
+            <div class="detail-grid">
+              <div><span>CHROME</span><b id="detail-browser">—</b></div>
+              <div><span>SITE</span><b id="detail-site">—</b></div>
+              <div><span>PROMPTS</span><b id="detail-prompts">—</b></div>
+              <div><span>DOWNLINK</span><b id="detail-downlink">—</b></div>
+            </div>
+          </div>
+
+          <div class="details-privacy">⌾ Derived-only · raw prompts and responses excluded</div>
+          </aside>
+        </div>
+        <div class="home-composer home-boundary">
+          <span class="mini-agent"><img src="./assets/guardot.png" alt="" /></span>
+          <span>Home writes only through the sealed lifecycle engine. SKILL.md remains generated, read-only, and provenance-bound.</span>
+        </div>
+      </section>
+
+      <section class="guide-view view" id="guide-view">
+        <div class="guide-toolbar">
+          <div>
+            <span class="eyebrow">MASTER SPECIES GUIDE</span>
+            <h2>Every Agentmon. Nothing cropped.</h2>
+            <p id="guide-summary">Loading the verified local catalog…</p>
+          </div>
+          <div class="guide-controls">
+            <label><span>SEARCH</span><input id="guide-search" type="search" placeholder="Name, role, or trait" /></label>
+            <label><span>BIOME</span><select id="guide-biome"><option value="all">ALL BIOMES</option></select></label>
+            <label><span>VARIANT</span><select id="guide-morph"><option value="standard">STANDARD</option></select></label>
+          </div>
+        </div>
+        <div class="guide-statusbar">
+          <div class="guide-status" id="guide-status" role="status">Opening the sheet-independent master folder…</div>
+          <div class="guide-pagination" aria-label="Species guide pages">
+            <button id="guide-previous" disabled>← PREVIOUS</button>
+            <span id="guide-page">PAGE —</span>
+            <button id="guide-next" disabled>NEXT →</button>
+          </div>
+        </div>
+        <div class="guide-grid" id="guide-grid" aria-live="polite"></div>
+        <div class="guide-empty" id="guide-empty" hidden>No Agentmons match this filter.</div>
+        <dialog class="guide-detail" id="guide-detail" aria-labelledby="guide-detail-name">
+          <div class="guide-detail-shell">
+            <header>
+              <div><span class="eyebrow">AGENTMON SPECIES FILE</span><h2 id="guide-detail-name">Agentmon</h2><p id="guide-detail-meta"></p></div>
+              <button id="guide-detail-close" aria-label="Close expanded Agentmon">×</button>
+            </header>
+            <div class="collector-card-body">
+              <section class="collector-art" aria-label="Agentmon appearance viewer">
+                <div class="collector-badges"><span id="guide-detail-number">AG-000</span><span id="guide-detail-rarity">COMMON · STANDARD</span></div>
+                <div class="collector-hero-frame"><img id="guide-detail-hero" alt="Selected Agentmon form" /></div>
+                <div class="collector-stage-tabs" id="guide-detail-line" aria-label="Select a life stage"></div>
+              </section>
+              <section class="collector-copy">
+                <span class="detail-label">FIELD GUIDE ENTRY</span>
+                <h3 id="guide-detail-class">Native species</h3>
+                <p class="collector-lore" id="guide-detail-lore"></p>
+                <dl class="collector-facts">
+                  <div><dt>HABITAT</dt><dd id="guide-detail-habitat">—</dd></div>
+                  <div><dt>SIGNATURE MOVE</dt><dd id="guide-detail-signature">—</dd></div>
+                </dl>
+                <p class="collector-field-note" id="guide-detail-field-note"></p>
+                <footer id="guide-detail-traits"></footer>
+              </section>
+            </div>
+          </div>
+        </dialog>
+      </section>
+
+      <div class="agent-dock" id="agent-dock">
+        <button class="dock-agent active" id="agent-details-trigger" aria-label="Open Guardot details"><img src="./assets/guardot.png" alt="Guardot" /><span></span></button>
+        <div class="dock-label"><b>Guardot</b><span>active</span></div>
+      </div>
+
+      <div class="receipt-popover popover" id="receipt-popover" hidden>
+        <span>WHAT GUARDED THIS RESPONSE</span>
+        <h3 id="receipt-title">Complete identity</h3>
+        <dl><div><dt>Archetype</dt><dd id="receipt-archetype">—</dd></div><div><dt>Resonance</dt><dd id="receipt-resonance">—</dd></div><div><dt>Procedure</dt><dd id="receipt-skill">—</dd></div><div><dt>Delivery</dt><dd id="receipt-delivery">Not sent</dd></div></dl>
+        <p id="receipt-privacy">Waiting for a real local engine receipt.</p>
+      </div>
+
+      <section class="connection-popover popover" id="connection-popover" hidden>
+        <div class="connection-heading">
+          <div><span>LOCAL COMPANION</span><h3 id="companion-title">Starting…</h3></div>
+          <button id="companion-power">Stop</button>
+        </div>
+        <div class="connection-grid">
+          <div><span>CHROME EXTENSION</span><b id="browser-state">Waiting</b></div>
+          <div><span>ENABLED SITE</span><b id="browser-site">None</b></div>
+          <div><span>PROMPTS OBSERVED</span><b id="browser-prompts">0</b></div>
+          <div><span>ACTIVE DOWNLINK</span><b id="browser-downlink">None</b></div>
+        </div>
+        <div class="pairing-row" id="pairing-row">
+          <div><span>ONE-TIME PAIRING CODE</span><code id="pairing-code">Starting…</code></div>
+          <button id="copy-pairing-code">Copy</button>
+        </div>
+        <div class="connection-model"><span>MODEL TARGET</span><b id="model-status">Configured · not connected</b></div>
+        <div class="codex-setup" id="codex-setup">
+          <div class="codex-setup-copy">
+            <span>CODEX PLUGIN</span>
+            <b id="codex-plugin-state">Not checked</b>
+            <p id="codex-plugin-message">Optional · runs only when you press Install.</p>
+          </div>
+          <button id="codex-plugin-install">INSTALL</button>
+        </div>
+        <p id="companion-privacy">Loopback only · derived data only · no raw browser prompts stored</p>
+        <p class="connection-error" id="connection-error" hidden></p>
+      </section>
+    </main>
+    <script src="./app.js" type="module"></script>
+    <script src="./catalog.js" type="module"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createFeed, extractUserPrompts, sanitizePrompt } from "../scripts/collector.mjs";
+import { createAdapterBatch, createFeed, extractUserPrompts, sanitizePrompt } from "../scripts/collector.mjs";
 
 test("keeps only user text and strips injected context", () => {
   const thread = {
@@ -33,4 +33,17 @@ test("creates a stable local feed revision", () => {
   assert.equal(first.format, "agentmon.feed/v1");
   assert.equal(first.consent.scope, "user_prompts_only");
   assert.equal(first.revision, second.revision);
+});
+
+test("exports Codex prompts through the provider-neutral adapter contract", () => {
+  const thread = {
+    id: "thread-adapter",
+    name: "Adapter task",
+    turns: [{ id: "turn-1", items: [{ type: "userMessage", id: "message-1", content: [{ type: "text", text: "Build the local engine." }] }] }],
+  };
+  const adapter = createAdapterBatch(thread);
+  assert.equal(adapter.format, "agentmon.adapter-batch/v1");
+  assert.equal(adapter.adapter, "codex");
+  assert.equal(adapter.consent.scope, "user_prompts_only");
+  assert.deepEqual(adapter.events.map(({ role, content }) => ({ role, content })), [{ role: "user", content: "Build the local engine." }]);
 });

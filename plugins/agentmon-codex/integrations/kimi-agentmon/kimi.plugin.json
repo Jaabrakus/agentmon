@@ -1,0 +1,16 @@
+{
+  "name": "agentmon-local-companion",
+  "version": "0.1.0",
+  "description": "Train an encrypted local Agentmon from explicitly submitted Kimi prompts.",
+  "hooks": [
+    {
+      "event": "UserPromptSubmit",
+      "command": "npm run --silent agentmon:hook -- --provider kimi",
+      "timeout": 10
+    }
+  ],
+  "interface": {
+    "displayName": "Agentmon Local Companion",
+    "shortDescription": "Train a private local Agentmon from Kimi prompts."
+  }
+}

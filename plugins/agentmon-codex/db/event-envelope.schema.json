@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentmon.dev/schemas/event-envelope-v1.json",
+  "title": "Agentmon Event Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "id",
+    "projectId",
+    "agentmonId",
+    "deviceId",
+    "sequence",
+    "eventType",
+    "schemaVersion",
+    "occurredAt",
+    "payloadDigest",
+    "payload",
+    "idempotencyKey",
+    "signature"
+  ],
+  "properties": {
+    "format": { "const": "agentmon.event/v1" },
+    "id": { "type": "string", "format": "uuid" },
+    "projectId": { "type": "string", "format": "uuid" },
+    "agentmonId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "deviceId": { "type": ["string", "null"], "minLength": 1, "maxLength": 160 },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "eventType": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "schemaVersion": { "const": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "payloadDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "payload": { "type": "object" },
+    "idempotencyKey": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "signature": { "type": ["string", "null"] }
+  }
+}

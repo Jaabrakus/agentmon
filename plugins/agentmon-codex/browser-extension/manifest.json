@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Agentmon Local Companion",
+  "version": "0.8.0",
+  "description": "Train a local Agentmon from submitted prompts and opt-in semantic website actions without storing raw page content.",
+  "minimum_chrome_version": "96",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:4765/*"],
+  "optional_host_permissions": [
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://kimi.com/*",
+    "https://www.kimi.com/*",
+    "https://venice.ai/*",
+    "https://github.com/*",
+    "https://linear.app/*",
+    "https://notion.so/*",
+    "https://www.notion.so/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Agentmon Local Companion",
+    "default_popup": "popup.html"
+  }
+}

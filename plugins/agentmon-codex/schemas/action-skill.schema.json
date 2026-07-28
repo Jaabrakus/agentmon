@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentmon.local/schemas/action-skill.schema.json",
+  "title": "Agentmon Action Skill",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "id", "name", "resonance", "site", "trigger", "steps", "executionPolicy", "evidence", "privacy", "status"],
+  "properties": {
+    "format": { "const": "agentmon.action-skill/v1" },
+    "id": { "type": "string", "pattern": "^action-[a-f0-9]{16}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "resonance": { "enum": ["mirror", "counterpart", "mentor", "specialist", "operator", "guardian"] },
+    "site": { "type": "string", "pattern": "^[a-z0-9.-]{1,253}$" },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pageClass", "startingAction"],
+      "properties": {
+        "pageClass": { "type": "string" },
+        "startingAction": { "type": "string" }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "kind", "control", "pageClass", "risk", "reversible"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1, "maximum": 8 },
+          "kind": { "enum": ["navigation", "control", "form-submit", "checkpoint"] },
+          "control": { "type": "string" },
+          "pageClass": { "type": "string" },
+          "risk": { "enum": ["low", "medium", "high"] },
+          "reversible": { "type": "boolean" }
+        }
+      }
+    },
+    "executionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "automaticRiskCeiling", "confirmationRequired", "allowedControls", "forbiddenControls"],
+      "properties": {
+        "mode": { "enum": ["suggest-only", "review-only", "approved-low-risk"] },
+        "automaticRiskCeiling": { "enum": ["none", "low"] },
+        "confirmationRequired": { "type": "boolean" },
+        "allowedControls": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "forbiddenControls": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "forecast": { "type": "object" },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distinctSessions", "occurrences", "confidence", "digests"],
+      "properties": {
+        "distinctSessions": { "type": "integer", "minimum": 1 },
+        "occurrences": { "type": "integer", "minimum": 1 },
+        "confidence": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "digests": { "type": "array", "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "uniqueItems": true }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rawTextStored", "fieldValuesStored", "screenshotsStored", "keystrokesStored", "localOnly"],
+      "properties": {
+        "rawTextStored": { "const": false },
+        "fieldValuesStored": { "const": false },
+        "screenshotsStored": { "const": false },
+        "keystrokesStored": { "const": false },
+        "localOnly": { "const": true }
+      }
+    },
+    "status": { "enum": ["proposed", "approved", "rejected", "testing", "proven", "regressed"] },
+    "trainerReview": { "enum": ["unreviewed", "confirmed", "rejected"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}

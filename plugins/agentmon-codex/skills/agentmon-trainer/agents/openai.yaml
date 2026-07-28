@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agentmon Trainer"
+  short_description: "Verify learned Agentmon state transitions"
+  default_prompt: "Use $agentmon-trainer to calibrate my Agentmon, verify a learned or evolved state transition, and export its LLM runtime pack."

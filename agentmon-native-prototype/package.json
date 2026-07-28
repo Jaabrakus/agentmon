@@ -1,0 +1,20 @@
+{
+  "name": "agentmon-native-prototype",
+  "version": "0.19.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "catalog": "node ../plugins/agentmon-codex/scripts/build-master-agentmon-catalog.mjs",
+    "predev": "npm run catalog",
+    "dev": "node scripts/run-tauri.cjs dev",
+    "prepare:runtime": "node scripts/prepare-runtime.mjs",
+    "check": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "pretest": "npm run catalog",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml && node --test tests/*.test.mjs",
+    "prebuild": "npm run catalog",
+    "build": "node scripts/run-tauri.cjs build --bundles app"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.5"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "format": "agentmon.arena-suite/v1",
+  "id": "pokemonllm-next-milestone",
+  "version": 1,
+  "title": "PokemonLLM Next Milestone Decision",
+  "domain": "product-strategy",
+  "systemPrompt": "Act as a product-minded engineering lead. Inspect the repository read-only. Base conclusions on current implementation evidence, not the aspirational vision alone. Recommend one next milestone, not a broad backlog.",
+  "tasks": [
+    {
+      "id": "choose-next-milestone",
+      "prompt": "What should we build next in PokemonLLM? Inspect the current repository and Agentmon implementation. Choose exactly one highest-leverage milestone for the next seven days. Explain: (1) what already exists, (2) the most important unproven product assumption, (3) why this milestone should precede UI polish, cloud trading, or broader squad features, (4) the smallest bounded implementation, (5) measurable acceptance gates, and (6) what should explicitly wait. Distinguish evidence from inference and disclose any uncertainty.",
+      "rubric": {
+        "passThreshold": 75,
+        "criteria": [
+          "Accurately reflects implemented repository state",
+          "Selects one milestone instead of listing an unfocused roadmap",
+          "Tests a major product assumption with real user value",
+          "Defines a buildable seven-day scope",
+          "Provides measurable acceptance gates",
+          "Names sequencing tradeoffs and uncertainty",
+          "Avoids claiming unsupported capabilities"
+        ]
+      }
+    }
+  ]
+}

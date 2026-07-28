@@ -2,37 +2,18 @@
 
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { mkdir, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
+import { sanitizePrompt } from "../lib/prompt-sanitizer.mjs";
+import { ingestAdapterBatch } from "../lib/adapters/native-client.mjs";
+
+export { sanitizePrompt } from "../lib/prompt-sanitizer.mjs";
 
 const FORMAT = "agentmon.feed/v1";
 const DEFAULT_INTERVAL = 2500;
-
-export function sanitizePrompt(input) {
-  let text = String(input ?? "")
-    .replace(/<(environment_context|recommended_plugins)>[\s\S]*?<\/\1>/gi, "")
-    .replace(/<permissions instructions>[\s\S]*?<\/permissions instructions>/gi, "")
-    .trim();
-  let redactions = 0;
-
-  const replacements = [
-    [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, "[REDACTED PRIVATE KEY]"],
-    [/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[REDACTED API KEY]"],
-    [/\b(?:ghp|github_pat|xox[baprs])-[A-Za-z0-9_-]{12,}\b/gi, "[REDACTED TOKEN]"],
-    [/(authorization\s*:\s*bearer\s+)[^\s"']+/gi, "$1[REDACTED]"],
-    [/((?:api[_-]?key|access[_-]?token|auth[_-]?token|password)\s*[:=]\s*)["']?[^\s,"']{8,}["']?/gi, "$1[REDACTED]"],
-    [/\b[a-z][a-z0-9+.-]*:\/\/[^\s/@:]+:[^\s/@]+@/gi, (match) => `${match.slice(0, match.indexOf("://") + 3)}[REDACTED]@`],
-  ];
-
-  for (const [pattern, replacement] of replacements) {
-    redactions += text.match(pattern)?.length ?? 0;
-    text = text.replace(pattern, replacement);
-  }
-
-  return { text: text.trim(), redactions };
-}
 
 export function extractUserPrompts(thread) {
   const prompts = [];
@@ -56,6 +37,18 @@ export function extractUserPrompts(thread) {
     }
   }
   return prompts;
+}
+
+export function createAdapterBatch(thread) {
+  const prompts = extractUserPrompts(thread);
+  return {
+    format: "agentmon.adapter-batch/v1",
+    adapter: "codex",
+    mode: "snapshot",
+    conversation: { id: String(thread.id), label: thread.name || "Codex task" },
+    consent: { scope: "user_prompts_only", grantedAt: null },
+    events: prompts.map((prompt) => ({ id: prompt.id, role: "user", content: prompt.text, createdAt: prompt.capturedAt })),
+  };
 }
 
 export function createFeed(thread) {
@@ -145,7 +138,7 @@ class AppServerClient {
 }
 
 function parseArgs(argv) {
-  const args = { cwd: process.cwd(), out: ".agentmon/codex-feed.json", threadId: null, watch: false, interval: DEFAULT_INTERVAL, list: false };
+  const args = { cwd: process.cwd(), out: ".agentmon/codex-feed.json", threadId: null, watch: false, interval: DEFAULT_INTERVAL, list: false, daemon: false, slot: "main" };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--watch") args.watch = true;
@@ -154,6 +147,8 @@ function parseArgs(argv) {
     else if (value === "--out") args.out = argv[++index];
     else if (value === "--thread") args.threadId = argv[++index];
     else if (value === "--interval") args.interval = Math.max(1000, Number(argv[++index]) || DEFAULT_INTERVAL);
+    else if (value === "--daemon") args.daemon = true;
+    else if (value === "--slot") args.slot = argv[++index];
     else if (value === "--help" || value === "-h") args.help = true;
     else throw new Error(`Unknown option: ${value}`);
   }
@@ -162,7 +157,7 @@ function parseArgs(argv) {
 }
 
 function help() {
-  return `Agentmon Codex collector\n\nUsage:\n  node collector.mjs [--watch] [--thread THREAD_ID] [--cwd PATH] [--out PATH]\n  node collector.mjs --list [--cwd PATH]\n\nThe collector reads one approved Codex task and writes only sanitized user prompts.\nAssistant messages, tool output, system instructions, files, and detected secrets are excluded.`;
+  return `Agentmon Codex collector\n\nUsage:\n  node collector.mjs [--watch] [--thread THREAD_ID] [--cwd PATH] [--out PATH]\n  node collector.mjs --daemon [--watch] [--slot SLOT] [--thread THREAD_ID]\n  node collector.mjs --list [--cwd PATH]\n\nThe collector reads one approved Codex task. --daemon sends prompts directly into the encrypted local vault.\nAssistant messages, tool output, system instructions, files, and detected secrets are excluded.`;
 }
 
 async function chooseThread(client, args) {
@@ -198,12 +193,17 @@ async function writeFeed(path, feed) {
   }
 }
 
-async function collect(client, threadId, output, previousRevision) {
+async function collect(client, threadId, args, previousRevision) {
   const result = await client.request("thread/read", { threadId, includeTurns: true });
   const feed = createFeed(result.thread);
   if (feed.revision !== previousRevision) {
-    await writeFeed(output, feed);
-    process.stdout.write(`Agentmon feed updated: ${feed.totals.prompts} prompts, ${feed.totals.redactions} redactions → ${output}\n`);
+    if (args.daemon) {
+      await ingestAdapterBatch({ rootDir: args.cwd, slot: args.slot, batch: createAdapterBatch(result.thread) });
+      process.stdout.write(`Encrypted Agentmon feed updated: ${feed.totals.prompts} prompts, ${feed.totals.redactions} redactions → local vault\n`);
+    } else {
+      await writeFeed(args.out, feed);
+      process.stdout.write(`Agentmon feed updated: ${feed.totals.prompts} prompts, ${feed.totals.redactions} redactions → ${args.out}\n`);
+    }
   }
   return feed.revision;
 }
@@ -219,20 +219,25 @@ async function main() {
     await client.start();
     const threadId = await chooseThread(client, args);
     if (!threadId) return;
-    let revision = await collect(client, threadId, args.out, null);
+    let revision = await collect(client, threadId, args, null);
     if (!args.watch) return;
     process.stdout.write(`Watching approved task ${threadId}. Press Ctrl+C to stop.\n`);
     while (!client.process.killed) {
       await new Promise((resolvePromise) => setTimeout(resolvePromise, args.interval));
-      revision = await collect(client, threadId, args.out, revision);
+      revision = await collect(client, threadId, args, revision);
     }
   } finally {
     client.stop();
   }
 }
 
-const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
-if (invokedPath === fileURLToPath(import.meta.url)) {
+function invokedAsMain() {
+  if (!process.argv[1]) return false;
+  try { return realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url)); }
+  catch { return false; }
+}
+
+if (invokedAsMain()) {
   main().catch((error) => {
     process.stderr.write(`Agentmon collector failed: ${error.message}\n`);
     process.exitCode = 1;
