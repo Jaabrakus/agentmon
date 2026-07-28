@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { access, readFile, stat } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import test from "node:test";
 
 const project = resolve(import.meta.dirname, "..");
@@ -34,6 +34,6 @@ test("the friend release has real Apple Silicon and Windows build paths", async 
   const checksums = await readFile(resolve(repository, "release-kit/latest/RELEASE-CHECKSUMS.sha256"), "utf8");
   for (const archive of [macZip, extensionZip]) {
     const digest = createHash("sha256").update(await readFile(archive)).digest("hex");
-    assert.match(checksums, new RegExp(`${digest}  ${archive.split("/").at(-1)}`));
+    assert.match(checksums, new RegExp(`${digest}  ${basename(archive)}`));
   }
 });
